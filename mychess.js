@@ -370,7 +370,7 @@ class Chess {
           if ((isHumamRedSide && this.active == 'black') || (!isHumamRedSide && this.active == 'red')) {
             setTimeout(function() {
               dogpawMove(defaultDepth);
-            }, 100);
+            }, 50);
           }
         } else { // 乱选
           console.log("还没有轮到你走棋");

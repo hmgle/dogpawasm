@@ -25,7 +25,8 @@
       go.run(instance);
       wasmInited = true;
       console.log("wasm 初始化完成。");
-      document.getElementById("page_hint_id").innerHTML = "黑方是进化中的 GoDogPaw (狗爪) 引擎！";
+      document.getElementById("page_hint_id").innerHTML =
+        "黑方是进化中的 GoDogPaw (狗爪) 引擎！";
     });
 
     function initGo() {
@@ -131,7 +132,12 @@
       let mov = goGetMove(fen, depth);
       moveChess(mov);
       if (game.in_checkmate()) {
-        alert("哼，愚蠢的人类。。。");
+        console.log("active:", chess.active);
+        if (chess.active == "red") {
+          alert("哼，愚蠢的人类。。。");
+        } else {
+          alert("你赢了，不跟你玩了。。。");
+        }
       }
     }
 
