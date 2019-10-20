@@ -1,0 +1,164 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>中国象棋人机大战</title>
+  <!--
+	Add the following polyfill for Microsoft Edge 17/18 support:
+	<script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js"></script>
+	(see https://caniuse.com/#feat=textencoder)
+	-->
+  <script src="wasm_exec.js"></script>
+  <script>
+    if (!WebAssembly.instantiateStreaming) { // polyfill
+      WebAssembly.instantiateStreaming = async (resp, importObject) => {
+        const source = await (await resp).arrayBuffer();
+        return await WebAssembly.instantiate(source, importObject);
+      };
+    }
+
+    const go = new Go();
+    let mod, inst;
+    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(
+      (result) => {
+        mod = result.module;
+        inst = result.instance;
+      }).catch((err) => {
+      console.error(err);
+    });
+
+    async function run() {
+      console.clear();
+      await go.run(inst);
+      inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
+    };
+
+    var executed = false;
+
+    function initGo() {
+      if (!executed) {
+        run();
+        executed = true;
+      }
+    }
+
+    function goGetMove(fen, depth) {
+      initGo();
+      return getmove(fen, depth);
+    }
+  </script>
+
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
+      margin: 0 auto;
+      display: block;
+    }
+
+    #outer {
+      width: 100%;
+      text-align: center;
+    }
+
+    .inner {
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+  <h3 align="center">黑方是进化中的 GoDogPaw (狗爪) 引擎！</h3>
+  <canvas id="chess">不支持canvas</canvas>
+
+  <script src="./xiangqi-0.1.3.min.js"></script>
+  <script type="text/javascript">
+    var game = new Xiangqi();
+    var isHumamRedSide = true;
+    var defaultDepth = 4;
+  </script>
+  <script src="./mychess.js" type="text/javascript" charset="utf-8"></script>
+  <script type="text/javascript">
+    var chess = new Chess("chess");
+
+    function pos2xy(pos) {
+      return {
+        x: pos[0].charCodeAt(0) - 'a'.charCodeAt(0),
+        y: 9 - pos[1]
+      };
+    }
+
+    function move2xy(move) {
+      let from = pos2xy(move.substring(0, 2));
+      let to = pos2xy(move.substring(2, 4));
+      return {
+        fromX: from.x,
+        fromY: from.y,
+        toX: to.x,
+        toY: to.y
+      };
+    }
+
+    function xy2move(fromX, fromY, toX, toY) {
+      let fx = String.fromCharCode('a'.charCodeAt() + fromX);
+      let fy = 9 - fromY;
+      let tx = String.fromCharCode('a'.charCodeAt() + toX);
+      let ty = 9 - toY;
+      let mov = fx + fy + tx + ty;
+      return mov
+    }
+
+    function moveChess(move) {
+      let m = move2xy(move);
+      chess.goStep(m.fromY, m.fromX);
+      chess.goStep(m.toY, m.toX);
+    }
+
+    function newGame() {
+      game = new Xiangqi();
+      chess = new Chess("chess");
+      isHumamRedSide = true;
+    }
+
+    function dogpawMove(depth) {
+      let fen = game.fen();
+      let mov = goGetMove(fen, depth);
+      // game.move(mov);
+      moveChess(mov);
+      if (game.in_checkmate()) {
+        alert("哼，愚蠢的人类。。。");
+      }
+    }
+
+    function changeSide() {
+      chess.reverseChess();
+      chess.renderUi();
+      isHumamRedSide = !isHumamRedSide;
+    }
+  </script>
+
+  <div id="outer">
+    <div class="inner">
+      <button onclick="newGame();" id="new_game">开始</button>
+    </div>
+    <div class="inner">
+      <button onclick="dogpawMove(defaultDepth);" id="hint">电脑提示</button>
+    </div>
+  </div>
+  <!--
+  <button onclick="changeSide();" id="change_side">我要和电脑交换</button>
+  -->
+
+</body>
+
+</html>
