@@ -11,6 +11,8 @@
 	-->
   <script src="wasm_exec.js"></script>
   <script>
+    var wasmInited = false;
+
     if (!WebAssembly.instantiateStreaming) { // polyfill
       WebAssembly.instantiateStreaming = async (resp, importObject) => {
         const source = await (await resp).arrayBuffer();
@@ -24,6 +26,8 @@
       (result) => {
         mod = result.module;
         inst = result.instance;
+
+        wasmInited = true;
       }).catch((err) => {
       console.error(err);
     });
@@ -37,6 +41,11 @@
     var executed = false;
 
     function initGo() {
+      if (!wasmInited) {
+        alert("wasm 文件未初始化，请等待。。");
+        return;
+      }
+
       if (!executed) {
         run();
         executed = true;
