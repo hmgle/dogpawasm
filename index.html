@@ -4,42 +4,28 @@
 <head>
   <meta charset="utf-8">
   <title>中国象棋人机大战</title>
-  <!--
-	Add the following polyfill for Microsoft Edge 17/18 support:
-	<script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js"></script>
-	(see https://caniuse.com/#feat=textencoder)
-	-->
   <script src="wasm_exec.js"></script>
   <script>
     var wasmInited = false;
+    var executed = false;
 
-    if (!WebAssembly.instantiateStreaming) { // polyfill
-      WebAssembly.instantiateStreaming = async (resp, importObject) => {
-        const source = await (await resp).arrayBuffer();
-        return await WebAssembly.instantiate(source, importObject);
-      };
+    function fetchAndInstantiate(url, importObject) {
+      return fetch(url).then(response =>
+        response.arrayBuffer()
+      ).then(bytes =>
+        WebAssembly.instantiate(bytes, importObject)
+      ).then(results =>
+        results.instance
+      );
     }
 
-    const go = new Go();
-    let mod, inst;
-    WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then(
-      (result) => {
-        mod = result.module;
-        inst = result.instance;
-
-        wasmInited = true;
-        console.log("wasm 初始化完成。");
-      }).catch((err) => {
-      console.error(err);
+    var go = new Go();
+    var mod = fetchAndInstantiate("main.wasm", go.importObject);
+    mod.then(function(instance) {
+      go.run(instance);
+      wasmInited = true;
+      console.log("wasm 初始化完成。");
     });
-
-    async function run() {
-      console.clear();
-      await go.run(inst);
-      inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
-    };
-
-    var executed = false;
 
     function initGo() {
       if (!wasmInited) {
@@ -48,7 +34,6 @@
       }
 
       if (!executed) {
-        run();
         executed = true;
       }
     }
@@ -143,7 +128,6 @@
     function dogpawMove(depth) {
       let fen = game.fen();
       let mov = goGetMove(fen, depth);
-      // game.move(mov);
       moveChess(mov);
       if (game.in_checkmate()) {
         alert("哼，愚蠢的人类。。。");

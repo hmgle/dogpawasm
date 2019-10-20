@@ -45,8 +45,7 @@ class Chess {
   getVictor() {
     var flag = false;
     for (let i = 0, len = this.composition.length; i < len; i++) {
-      for (let j = 0, len1 = this.composition[i].length; j < len1; j++) {
-      }
+      for (let j = 0, len1 = this.composition[i].length; j < len1; j++) {}
     }
   }
 
