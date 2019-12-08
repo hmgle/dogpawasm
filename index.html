@@ -135,6 +135,10 @@
     function dogpawMove(depth) {
       let fen = game.fen();
       let mov = goGetMove(fen, depth);
+      if (mov == "0000") {
+        alert("你赢了。。。");
+        return;
+      }
       moveChess(mov);
       if (game.in_checkmate()) {
         console.log("active:", chess.active);
